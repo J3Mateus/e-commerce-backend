@@ -23,7 +23,8 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       if (xSignature && xRequestId) {
         const valid = verifyMPSignature({ xSignature, xRequestId, dataId })
         if (!valid) {
-          return (reply as any).status(400).send({ received: false })
+          fastify.log.warn({ xRequestId }, 'Invalid MP webhook signature — ignoring')
+          return reply.send({ received: true })
         }
       }
 
