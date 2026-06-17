@@ -1,0 +1,36 @@
+{
+  "name": "e-commerce-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@clerk/fastify": "^2",
+    "@fastify/cors": "^10",
+    "@fastify/swagger": "^9",
+    "@fastify/swagger-ui": "^5",
+    "dotenv": "^16",
+    "drizzle-orm": "^0.38",
+    "fastify": "^5",
+    "fastify-plugin": "^5",
+    "fastify-type-provider-zod": "^4",
+    "mercadopago": "^2",
+    "pg": "^8",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8",
+    "drizzle-kit": "^0.30",
+    "tsx": "^4",
+    "typescript": "^5",
+    "vitest": "^2"
+  }
+}
