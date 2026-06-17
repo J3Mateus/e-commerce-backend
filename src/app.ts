@@ -7,6 +7,7 @@ import categoryRoutes from './modules/categories/category.routes.js'
 import productRoutes from './modules/products/product.routes.js'
 import orderRoutes from './modules/orders/order.routes.js'
 import webhookRoutes from './modules/webhooks/webhook.routes.js'
+import { env } from './config/env.js'
 
 export async function buildApp() {
   const fastify = Fastify({ logger: true })
@@ -14,7 +15,9 @@ export async function buildApp() {
   fastify.setValidatorCompiler(validatorCompiler)
   fastify.setSerializerCompiler(serializerCompiler)
 
-  await fastify.register(cors, { origin: true })
+  await fastify.register(cors, {
+    origin: [env.FRONTEND_URL, env.APP_URL],
+  })
   await fastify.register(swaggerPlugin)
   await fastify.register(clerkPlugin)
 

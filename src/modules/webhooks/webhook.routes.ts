@@ -20,12 +20,15 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       const xRequestId = request.headers['x-request-id'] as string | undefined
       const dataId = request.body.data.id
 
-      if (xSignature && xRequestId) {
-        const valid = verifyMPSignature({ xSignature, xRequestId, dataId })
-        if (!valid) {
-          fastify.log.warn({ xRequestId }, 'Invalid MP webhook signature — ignoring')
-          return reply.send({ received: true })
-        }
+      if (!xSignature || !xRequestId) {
+        fastify.log.warn('MP webhook received without signature headers — ignoring')
+        return reply.send({ received: true })
+      }
+
+      const valid = verifyMPSignature({ xSignature, xRequestId, dataId })
+      if (!valid) {
+        fastify.log.warn({ xRequestId }, 'Invalid MP webhook signature — ignoring')
+        return reply.send({ received: true })
       }
 
       if (request.body.type === 'payment') {

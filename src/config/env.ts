@@ -7,6 +7,7 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(1),
   MERCADOPAGO_ACCESS_TOKEN: z.string().min(1),
   MERCADOPAGO_WEBHOOK_SECRET: z.string().min(1),
+  MERCADOPAGO_COLLECTOR_ID: z.string().optional(),
   APP_URL: z.string().url().default('http://localhost:3001'),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   PORT: z.coerce.number().default(3001),

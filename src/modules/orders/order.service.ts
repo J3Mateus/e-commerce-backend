@@ -61,26 +61,41 @@ export async function createOrder(input: CreateOrderInput): Promise<{ orderId: s
     return { order: newOrder, itemsData }
   })
 
-  const preference = new Preference(mpClient)
-  const mpPref = await preference.create({
-    body: {
-      items: order.itemsData.map((item) => ({
-        id: item.id,
-        title: item.name,
-        quantity: item.quantity,
-        unit_price: parseFloat(item.price),
-        currency_id: 'BRL',
-      })),
-      external_reference: order.order.id,
-      notification_url: `${env.APP_URL}/api/webhooks/mercadopago`,
-      back_urls: {
-        success: `${env.FRONTEND_URL}/order-confirmation`,
-        failure: `${env.FRONTEND_URL}/checkout`,
-        pending: `${env.FRONTEND_URL}/orders`,
+  let mpPref: Awaited<ReturnType<Preference['create']>>
+  try {
+    const preference = new Preference(mpClient)
+    mpPref = await preference.create({
+      body: {
+        items: order.itemsData.map((item) => ({
+          id: item.id,
+          title: item.name,
+          quantity: item.quantity,
+          unit_price: parseFloat(item.price),
+          currency_id: 'BRL',
+        })),
+        external_reference: order.order.id,
+        notification_url: `${env.APP_URL}/api/webhooks/mercadopago`,
+        back_urls: {
+          success: `${env.FRONTEND_URL}/order-confirmation`,
+          failure: `${env.FRONTEND_URL}/checkout`,
+          pending: `${env.FRONTEND_URL}/orders`,
+        },
+        auto_return: 'approved',
       },
-      auto_return: 'approved',
-    },
-  })
+    })
+  } catch (mpError) {
+    // Compensate: cancel order and restore stock
+    await db.transaction(async (tx) => {
+      await tx.update(orders).set({ status: 'cancelled', updatedAt: new Date() }).where(eq(orders.id, order.order.id))
+      for (const item of order.itemsData) {
+        await tx
+          .update(products)
+          .set({ stock: sql`${products.stock} + ${item.quantity}`, updatedAt: new Date() })
+          .where(eq(products.id, item.id))
+      }
+    })
+    throw mpError
+  }
 
   await db
     .update(orders)

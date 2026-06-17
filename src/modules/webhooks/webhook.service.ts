@@ -42,14 +42,25 @@ export async function handlePaymentUpdate(paymentId: string): Promise<void> {
   const payment = new Payment(mpClient)
   const paymentData = await payment.get({ id: paymentId })
 
+  if (env.MERCADOPAGO_COLLECTOR_ID && String(paymentData.collector_id) !== env.MERCADOPAGO_COLLECTOR_ID) {
+    return // payment belongs to a different MP account — ignore
+  }
+
   const orderId = paymentData.external_reference
   if (!orderId) return
 
-  const newStatus = MP_STATUS_MAP[paymentData.status ?? ''] ?? 'pending'
+  const newStatus = MP_STATUS_MAP[paymentData.status ?? '']
+  if (!newStatus) return // unknown status — preserve current order state
+
+  const TERMINAL_STATUSES = ['processing', 'shipped', 'delivered']
 
   await db.transaction(async (tx) => {
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).for('update')
     if (!order) return
+
+    if (TERMINAL_STATUSES.includes(order.status) && newStatus === 'pending') {
+      return // ignore — order already past this state
+    }
 
     await tx
       .update(orders)
