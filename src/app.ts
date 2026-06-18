@@ -7,6 +7,7 @@ import categoryRoutes from './modules/categories/category.routes.js'
 import productRoutes from './modules/products/product.routes.js'
 import orderRoutes from './modules/orders/order.routes.js'
 import webhookRoutes from './modules/webhooks/webhook.routes.js'
+import productAdminRoutes from './modules/products/product.admin.routes.js'
 import { env } from './config/env.js'
 
 export async function buildApp() {
@@ -25,6 +26,7 @@ export async function buildApp() {
   await fastify.register(productRoutes, { prefix: '/api' })
   await fastify.register(orderRoutes, { prefix: '/api' })
   await fastify.register(webhookRoutes, { prefix: '/api' })
+  await fastify.register(productAdminRoutes, { prefix: '/api' })
 
   return fastify
 }
