@@ -12,6 +12,16 @@ const envSchema = z.object({
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   PORT: z.coerce.number().default(3001),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NGROK_AUTHTOKEN: z.string().optional(),
+  NGROK_DOMAIN: z.string().optional(),
+  ADMIN_USER_IDS: z.string().default(''),
 })
 
-export const env = envSchema.parse(process.env)
+const rawEnv = envSchema.parse(process.env)
+
+export const env = {
+  ...rawEnv,
+  APP_URL: rawEnv.NGROK_DOMAIN
+    ? `https://${rawEnv.NGROK_DOMAIN}`
+    : rawEnv.APP_URL,
+}
