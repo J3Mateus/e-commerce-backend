@@ -4,8 +4,10 @@ import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod
 import swaggerPlugin from './plugins/swagger.js'
 import clerkPlugin from './plugins/clerk.js'
 import categoryRoutes from './modules/categories/category.routes.js'
+import categoryAdminRoutes from './modules/categories/category.admin.routes.js'
 import productRoutes from './modules/products/product.routes.js'
 import orderRoutes from './modules/orders/order.routes.js'
+import orderAdminRoutes from './modules/orders/order.admin.routes.js'
 import webhookRoutes from './modules/webhooks/webhook.routes.js'
 import productAdminRoutes from './modules/products/product.admin.routes.js'
 import { env } from './config/env.js'
@@ -27,6 +29,8 @@ export async function buildApp() {
   await fastify.register(orderRoutes, { prefix: '/api' })
   await fastify.register(webhookRoutes, { prefix: '/api' })
   await fastify.register(productAdminRoutes, { prefix: '/api' })
+  await fastify.register(categoryAdminRoutes, { prefix: '/api' })
+  await fastify.register(orderAdminRoutes, { prefix: '/api' })
 
   return fastify
 }
