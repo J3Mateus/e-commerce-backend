@@ -36,9 +36,14 @@ export default async function productAdminRoutes(fastify: FastifyInstance) {
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
-      const data = await updateProduct(request.params.id, request.body)
-      if (!data) return reply.status(404).send({ error: 'Product not found' })
-      return reply.send({ data })
+      try {
+        const data = await updateProduct(request.params.id, request.body)
+        if (!data) return reply.status(404).send({ error: 'Product not found' })
+        return reply.send({ data })
+      } catch (err: any) {
+        if (err.code === '23505') return reply.status(409).send({ error: 'Slug already exists' })
+        throw err
+      }
     },
   })
 

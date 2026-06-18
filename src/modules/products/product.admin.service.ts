@@ -6,6 +6,7 @@ import type { ProductResponse } from './product.schema.js'
 
 async function toProductResponse(product: typeof products.$inferSelect): Promise<ProductResponse> {
   const [category] = await db.select().from(categories).where(eq(categories.id, product.categoryId))
+  if (!category) throw new Error(`Category not found for product ${product.id}`)
   return {
     id: product.id,
     name: product.name,
