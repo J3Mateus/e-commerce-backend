@@ -2,14 +2,11 @@ import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { getAuth } from '@clerk/fastify'
-import { requireAdmin } from '../../plugins/admin.js'
+import { requireAdmin, adminIds } from '../../plugins/admin.js'
 import { requireAuth } from '../../plugins/clerk.js'
 import { OrderResponseSchema } from './order.schema.js'
 import { AdminOrderQuerySchema, UpdateOrderStatusBodySchema } from './order.admin.schema.js'
 import { listAllOrders, getAdminOrder, updateOrderStatus, getAdminStats } from './order.admin.service.js'
-import { env } from '../../config/env.js'
-
-const adminIds = new Set(env.ADMIN_USER_IDS.split(',').filter(Boolean))
 
 export default async function orderAdminRoutes(fastify: FastifyInstance) {
   const f = fastify.withTypeProvider<ZodTypeProvider>()
@@ -20,12 +17,13 @@ export default async function orderAdminRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Admin'],
       security: [{ bearerAuth: [] }],
-      response: { 200: z.object({ isAdmin: z.boolean() }) },
+      response: { 200: z.object({ isAdmin: z.boolean() }), 401: z.object({ error: z.string() }) },
     },
     preHandler: requireAuth,
     handler: async (request, reply) => {
       const { userId } = getAuth(request)
-      return reply.send({ isAdmin: adminIds.has(userId!) })
+      if (!userId) return reply.status(401).send({ error: 'Unauthorized' })
+      return reply.send({ isAdmin: adminIds.has(userId) })
     },
   })
 

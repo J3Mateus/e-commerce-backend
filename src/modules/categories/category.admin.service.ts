@@ -10,6 +10,7 @@ function toResponse(cat: typeof categories.$inferSelect): CategoryResponse {
 
 export async function createCategory(data: CreateCategoryBody): Promise<CategoryResponse> {
   const [cat] = await db.insert(categories).values(data).returning()
+  if (!cat) throw new Error('Insert returned no row')
   return toResponse(cat)
 }
 

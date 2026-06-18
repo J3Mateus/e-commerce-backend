@@ -1,8 +1,12 @@
-import { eq, inArray, sql, count, sum } from 'drizzle-orm'
+import { eq, inArray, ne, sql, count, sum } from 'drizzle-orm'
 import { db } from '../../db/index.js'
 import { orders, orderItems, products } from '../../db/schema.js'
 import type { OrderResponse } from './order.schema.js'
 import type { UpdateOrderStatusBody } from './order.admin.schema.js'
+import type { z } from 'zod'
+import { OrderStatusSchema } from './order.admin.schema.js'
+
+type OrderStatusValue = z.infer<typeof OrderStatusSchema>
 
 async function attachItems(orderList: (typeof orders.$inferSelect)[]): Promise<OrderResponse[]> {
   if (orderList.length === 0) return []
@@ -33,13 +37,9 @@ async function attachItems(orderList: (typeof orders.$inferSelect)[]): Promise<O
   }))
 }
 
-export async function listAllOrders(status?: string): Promise<OrderResponse[]> {
+export async function listAllOrders(status?: OrderStatusValue): Promise<OrderResponse[]> {
   const result = status
-    ? await db
-        .select()
-        .from(orders)
-        .where(eq(orders.status, status as any))
-        .orderBy(sql`${orders.createdAt} DESC`)
+    ? await db.select().from(orders).where(eq(orders.status, status)).orderBy(sql`${orders.createdAt} DESC`)
     : await db.select().from(orders).orderBy(sql`${orders.createdAt} DESC`)
   return attachItems(result)
 }
@@ -66,7 +66,7 @@ export async function getAdminStats() {
   const [orderStats] = await db
     .select({ total: count(), revenue: sum(orders.total) })
     .from(orders)
-    .where(sql`${orders.status} != 'cancelled'`)
+    .where(ne(orders.status, 'cancelled'))
 
   const [productStats] = await db
     .select({
