@@ -3,10 +3,11 @@ import { db } from '../../db/index.js'
 import { products, categories } from '../../db/schema.js'
 import type { CreateProductBody, UpdateProductBody } from './product.admin.schema.js'
 import type { ProductResponse } from './product.schema.js'
+import { NotFoundError } from '../../errors.js'
 
 async function toProductResponse(product: typeof products.$inferSelect): Promise<ProductResponse> {
   const [category] = await db.select().from(categories).where(eq(categories.id, product.categoryId))
-  if (!category) throw new Error(`Category not found for product ${product.id}`)
+  if (!category) throw new NotFoundError('Categoria')
   return {
     id: product.id,
     name: product.name,
@@ -30,6 +31,7 @@ export async function createProduct(data: CreateProductBody): Promise<ProductRes
     slug: data.slug,
     categoryId: data.categoryId,
   }).returning()
+  if (!product) throw new Error('Insert retornou vazio')
   return toProductResponse(product)
 }
 

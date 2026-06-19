@@ -4,6 +4,7 @@ import { db } from '../../db/index.js'
 import { products, orders, orderItems } from '../../db/schema.js'
 import { env } from '../../config/env.js'
 import type { CreateOrderBody, OrderResponse } from './order.schema.js'
+import { NotFoundError, InsufficientStockError, ServiceUnavailableError } from '../../errors.js'
 
 const mpClient = new MercadoPagoConfig({ accessToken: env.MERCADOPAGO_ACCESS_TOKEN })
 
@@ -22,9 +23,9 @@ export async function createOrder(input: CreateOrderInput): Promise<{ orderId: s
         .where(eq(products.id, item.productId))
         .for('update')
 
-      if (!product) throw new Error(`Produto não encontrado: ${item.productId}`)
+      if (!product) throw new NotFoundError(`Produto ${item.productId}`)
       if (product.stock < item.quantity) {
-        throw new Error(`Estoque insuficiente: ${product.name} (disponível: ${product.stock})`)
+        throw new InsufficientStockError(product.name, product.stock)
       }
 
       await tx
@@ -73,6 +74,9 @@ export async function createOrder(input: CreateOrderInput): Promise<{ orderId: s
           unit_price: parseFloat(item.price),
           currency_id: 'BRL',
         })),
+        payer: {
+          email: input.customerEmail,
+        },
         external_reference: order.order.id,
         notification_url: `${env.APP_URL}/api/webhooks/mercadopago`,
         back_urls: {
@@ -80,7 +84,7 @@ export async function createOrder(input: CreateOrderInput): Promise<{ orderId: s
           failure: `${env.FRONTEND_URL}/checkout`,
           pending: `${env.FRONTEND_URL}/orders`,
         },
-        auto_return: 'approved',
+        ...(env.FRONTEND_URL.startsWith('http://localhost') ? {} : { auto_return: 'approved' }),
       },
     })
   } catch (mpError) {
@@ -94,7 +98,7 @@ export async function createOrder(input: CreateOrderInput): Promise<{ orderId: s
           .where(eq(products.id, item.id))
       }
     })
-    throw mpError
+    throw new ServiceUnavailableError('MercadoPago')
   }
 
   await db
