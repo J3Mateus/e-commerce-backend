@@ -18,7 +18,6 @@ export default async function orderRoutes(fastify: FastifyInstance) {
       body: CreateOrderBodySchema,
       response: {
         201: z.object({ data: z.object({ orderId: z.string(), checkoutUrl: z.string() }) }),
-        409: z.object({ error: z.string() }),
       },
     },
     preHandler: requireAuth,

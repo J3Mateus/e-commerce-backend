@@ -27,6 +27,7 @@
     "zod": "^3"
   },
   "devDependencies": {
+    "@ngrok/ngrok": "^1.7.0",
     "@types/pg": "^8",
     "drizzle-kit": "^0.30",
     "tsx": "^4",
