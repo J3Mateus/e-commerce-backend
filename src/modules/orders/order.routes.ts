@@ -24,15 +24,8 @@ export default async function orderRoutes(fastify: FastifyInstance) {
     preHandler: requireAuth,
     handler: async (request, reply) => {
       const { userId } = getAuth(request)
-      try {
-        const result = await createOrder({ ...request.body, clerkUserId: userId! })
-        return reply.status(201).send({ data: result })
-      } catch (err: any) {
-        if (err.message.includes('Estoque insuficiente')) {
-          return reply.status(409).send({ error: err.message })
-        }
-        throw err
-      }
+      const result = await createOrder({ ...request.body, clerkUserId: userId! })
+      return reply.status(201).send({ data: result })
     },
   })
 

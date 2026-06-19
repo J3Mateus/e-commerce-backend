@@ -23,12 +23,7 @@ export default async function categoryAdminRoutes(fastify: FastifyInstance) {
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
-      try {
-        return reply.status(201).send({ data: await createCategory(request.body) })
-      } catch (err: any) {
-        if (err.code === '23505') return reply.status(409).send({ error: 'Name or slug already exists' })
-        throw err
-      }
+      return reply.status(201).send({ data: await createCategory(request.body) })
     },
   })
 
@@ -68,14 +63,9 @@ export default async function categoryAdminRoutes(fastify: FastifyInstance) {
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
-      try {
-        const deleted = await deleteCategory(request.params.id)
-        if (!deleted) return reply.status(404).send({ error: 'Category not found' })
-        return reply.status(204).send()
-      } catch (err: any) {
-        if (err.code === '23503') return reply.status(409).send({ error: 'Category has products' })
-        throw err
-      }
+      const deleted = await deleteCategory(request.params.id)
+      if (!deleted) return reply.status(404).send({ error: 'Category not found' })
+      return reply.status(204).send()
     },
   })
 }

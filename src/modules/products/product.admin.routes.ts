@@ -18,12 +18,7 @@ export default async function productAdminRoutes(fastify: FastifyInstance) {
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
-      try {
-        return reply.status(201).send({ data: await createProduct(request.body) })
-      } catch (err: any) {
-        if (err.code === '23505') return reply.status(409).send({ error: 'Slug already exists' })
-        throw err
-      }
+      return reply.status(201).send({ data: await createProduct(request.body) })
     },
   })
 
@@ -32,18 +27,13 @@ export default async function productAdminRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Admin'], security: [{ bearerAuth: [] }],
       params: z.object({ id: z.string().uuid() }), body: UpdateProductBodySchema,
-      response: { 200: z.object({ data: ProductResponseSchema }), 404: z.object({ error: z.string() }), 409: z.object({ error: z.string() }) },
+      response: { 200: z.object({ data: ProductResponseSchema }), 404: z.object({ error: z.string() }) },
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
-      try {
-        const data = await updateProduct(request.params.id, request.body)
-        if (!data) return reply.status(404).send({ error: 'Product not found' })
-        return reply.send({ data })
-      } catch (err: any) {
-        if (err.code === '23505') return reply.status(409).send({ error: 'Slug already exists' })
-        throw err
-      }
+      const data = await updateProduct(request.params.id, request.body)
+      if (!data) return reply.status(404).send({ error: 'Product not found' })
+      return reply.send({ data })
     },
   })
 
@@ -56,14 +46,9 @@ export default async function productAdminRoutes(fastify: FastifyInstance) {
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
-      try {
-        const deleted = await deleteProduct(request.params.id)
-        if (!deleted) return reply.status(404).send({ error: 'Product not found' })
-        return reply.status(204).send()
-      } catch (err: any) {
-        if (err.code === '23503') return reply.status(409).send({ error: 'Product has associated orders' })
-        throw err
-      }
+      const deleted = await deleteProduct(request.params.id)
+      if (!deleted) return reply.status(404).send({ error: 'Product not found' })
+      return reply.status(204).send()
     },
   })
 }
