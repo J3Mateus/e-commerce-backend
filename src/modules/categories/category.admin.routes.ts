@@ -18,7 +18,6 @@ export default async function categoryAdminRoutes(fastify: FastifyInstance) {
       body: CreateCategoryBodySchema,
       response: {
         201: z.object({ data: CategoryResponseSchema }),
-        409: z.object({ error: z.string() }),
       },
     },
     preHandler: requireAdmin,
@@ -58,7 +57,6 @@ export default async function categoryAdminRoutes(fastify: FastifyInstance) {
       response: {
         204: z.void(),
         404: z.object({ error: z.string() }),
-        409: z.object({ error: z.string() }),
       },
     },
     preHandler: requireAdmin,

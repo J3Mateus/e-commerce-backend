@@ -14,7 +14,7 @@ export default async function productAdminRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Admin'], security: [{ bearerAuth: [] }],
       body: CreateProductBodySchema,
-      response: { 201: z.object({ data: ProductResponseSchema }), 409: z.object({ error: z.string() }) },
+      response: { 201: z.object({ data: ProductResponseSchema }) },
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
@@ -42,7 +42,7 @@ export default async function productAdminRoutes(fastify: FastifyInstance) {
     schema: {
       tags: ['Admin'], security: [{ bearerAuth: [] }],
       params: z.object({ id: z.string().uuid() }),
-      response: { 204: z.void(), 404: z.object({ error: z.string() }), 409: z.object({ error: z.string() }) },
+      response: { 204: z.void(), 404: z.object({ error: z.string() }) },
     },
     preHandler: requireAdmin,
     handler: async (request, reply) => {
