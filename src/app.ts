@@ -1,6 +1,6 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
-import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
+import { serializerCompiler, validatorCompiler, hasZodFastifySchemaValidationErrors } from 'fastify-type-provider-zod'
 import swaggerPlugin from './plugins/swagger.js'
 import clerkPlugin from './plugins/clerk.js'
 import categoryRoutes from './modules/categories/category.routes.js'
@@ -12,7 +12,6 @@ import webhookRoutes from './modules/webhooks/webhook.routes.js'
 import productAdminRoutes from './modules/products/product.admin.routes.js'
 import { env } from './config/env.js'
 import { AppError } from './errors.js'
-import type { FastifyError } from 'fastify'
 
 export async function buildApp() {
   const fastify = Fastify({ logger: true })
@@ -20,9 +19,9 @@ export async function buildApp() {
   fastify.setValidatorCompiler(validatorCompiler)
   fastify.setSerializerCompiler(serializerCompiler)
 
-  fastify.setErrorHandler<FastifyError>((error, _request, reply) => {
+  fastify.setErrorHandler((error, _request, reply) => {
     // Fastify/Zod validation errors (400)
-    if (error.validation) {
+    if (hasZodFastifySchemaValidationErrors(error)) {
       return reply.status(400).send({
         error: 'Dados inválidos',
         details: error.validation,
